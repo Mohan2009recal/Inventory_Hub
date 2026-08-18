@@ -1,0 +1,37 @@
+:root {
+  --primary-color: #0078d4;
+  --bg-color: #f3f2f1;
+  --card-bg: #ffffff;
+  --text-color: #323130;
+  --border-color: #e1dfdd;
+  --success-color: #107c41;
+  --danger-color: #a80000;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+body { background-color: var(--bg-color); color: var(--text-color); }
+.navbar { background-color: var(--primary-color); color: #fff; padding: 1rem 2rem; }
+.badge { background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; }
+.container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+.card { background: var(--card-bg); border-radius: 6px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1.6px 3.6px rgba(0,0,0,0.13); }
+.controls { display: flex; gap: 15px; }
+.controls input, .controls select { padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; }
+.search-box { flex: 2; } .search-box input { width: 100%; }
+.filter-box { flex: 1; } .filter-box select { width: 100%; }
+.form-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr; gap: 10px; }
+.form-row input, .form-row select { padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; }
+.btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-danger { background-color: var(--danger-color); color: white; padding: 5px 10px; font-size: 0.85rem; }
+.table-header { display: flex; justify-content: space-between; align-items: center; }
+.count-badge { background-color: #e1dfdd; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+th { background-color: #faf9f8; }
+.status-tag { padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+.status-in-stock { background-color: #dff6dd; color: var(--success-color); }
+.status-low-stock { background-color: #fff4ce; color: #8a6d3b; }
+.status-out-of-stock { background-color: #fde8e8; color: var(--danger-color); }
+.alert { margin-top: 10px; padding: 10px; border-radius: 4px; font-size: 0.9rem; }
+.alert-success { background-color: #dff6dd; color: var(--success-color); }
+.alert-error { background-color: #fde8e8; color: var(--danger-color); }

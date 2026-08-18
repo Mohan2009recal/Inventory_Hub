@@ -1,0 +1,186 @@
+@page "/"
+@using InventoryHub.Shared.Models
+@inject HttpClient Http
+
+<header class="navbar">
+    <div class="logo">
+        <h1>📦 InventoryHub</h1>
+        <span class="badge">Blazor WebAssembly + .NET Web API</span>
+    </div>
+</header>
+
+<main class="container">
+    <!-- Filters -->
+    <section class="card controls">
+        <div class="search-box">
+            <input type="text" placeholder="Search item..." @bind="searchTerm" @bind:event="oninput" @onafterset="LoadInventory" />
+        </div>
+        <div class="filter-box">
+            <select @bind="selectedCategory" @bind:after="LoadInventory">
+                <option value="All">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Furniture">Furniture</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Form -->
+    <section class="card">
+        <h2>Add New Inventory Item</h2>
+        <EditForm Model="@newItem" OnValidSubmit="AddItem">
+            <DataAnnotationsValidator />
+            <div class="form-row">
+                <InputText placeholder="Item Name" @bind-Value="newItem.Name" />
+                <InputSelect @bind-Value="newItem.Category">
+                    <option value="">Select Category</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Furniture">Furniture</option>
+                </InputSelect>
+                <InputNumber placeholder="Quantity" @bind-Value="newItem.Quantity" />
+                <InputNumber placeholder="Price ($)" @bind-Value="newItem.Price" />
+                <button type="submit" class="btn btn-primary">Add Item</button>
+            </div>
+        </EditForm>
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <div class="alert @alertClass">@alertMessage</div>
+        }
+    </section>
+
+    <!-- Table -->
+    <section class="card">
+        <div class="table-header">
+            <h2>Current Inventory</h2>
+            <span class="count-badge">Total items: @totalCount</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (items == null || !items.Any())
+                {
+                    <tr><td colspan="7" style="text-align:center;">No items found.</td></tr>
+                }
+                else
+                {
+                    @foreach (var item in items)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td><strong>@item.Name</strong></td>
+                            <td>@item.Category</td>
+                            <td>@item.Quantity</td>
+                            <td>$@item.Price.ToString("F2")</td>
+                            <td>
+                                <span class="status-tag @GetStatusClass(item.Status)">
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="() => DeleteItem(item.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </section>
+</main>
+
+@code {
+    private List<InventoryItem> items = new();
+    private InventoryItem newItem = new();
+    private string searchTerm = "";
+    private string selectedCategory = "All";
+    private int totalCount = 0;
+    private string alertMessage = "";
+    private string alertClass = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInventory();
+    }
+
+    private async Task LoadInventory()
+    {
+        try
+        {
+            var url = $"api/inventory?category={selectedCategory}&search={searchTerm}";
+            var response = await Http.GetFromJsonAsync<ApiResponse<List<InventoryItem>>>(url);
+            if (response != null && response.Success)
+            {
+                items = response.Data ?? new();
+                totalCount = response.Count ?? 0;
+            }
+        }
+        catch (Exception)
+        {
+            ShowAlert("Error connecting to Web API server", "alert-error");
+        }
+    }
+
+    private async Task AddItem()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/inventory", newItem);
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<InventoryItem>>();
+
+            if (result != null && result.Success)
+            {
+                ShowAlert("Item added successfully!", "alert-success");
+                newItem = new InventoryItem();
+                await LoadInventory();
+            }
+            else
+            {
+                ShowAlert(result?.Message ?? "Error adding item", "alert-error");
+            }
+        }
+        catch (Exception)
+        {
+            ShowAlert("Server error while adding item", "alert-error");
+        }
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"api/inventory/{id}");
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<InventoryItem>>();
+
+            if (result != null && result.Success)
+            {
+                ShowAlert("Item deleted successfully!", "alert-success");
+                await LoadInventory();
+            }
+        }
+        catch (Exception)
+        {
+            ShowAlert("Error deleting item", "alert-error");
+        }
+    }
+
+    private void ShowAlert(string msg, string cssClass)
+    {
+        alertMessage = msg;
+        alertClass = cssClass;
+    }
+
+    private string GetStatusClass(string status) => status switch
+    {
+        "Low Stock" => "status-low-stock",
+        "Out of Stock" => "status-out-of-stock",
+        _ => "status-in-stock"
+    };
+}
